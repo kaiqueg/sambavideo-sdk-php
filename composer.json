@@ -1,0 +1,30 @@
+{
+  "name": "kaiquegarcia/sambavideo-sdk-php",
+  "description": "SDK PHP para integração com Sambavideo API",
+  "homepage": "https://app.swaggerhub.com/apis/Sambatech/SambaVideos/1.2.0",
+  "keywords": ["sambatech", "sambavideo", "samba", "sdk", "php", "api"],
+  "type": "library",
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "Sambatech",
+      "homepage": "https://sambatech.com/"
+    },
+    {
+      "name": "Kaique Garcia",
+      "email": "kaiquegarciam@gmail.com"
+    }
+  ],
+  "version": "1.0.0",
+  "require": {
+    "php": "^7.2",
+    "ext-json": "*",
+    "ext-simplexml": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Sambavideo\\": "src/"
+    },
+    "files": ["src/spl_autoload.php"]
+  }
+}
