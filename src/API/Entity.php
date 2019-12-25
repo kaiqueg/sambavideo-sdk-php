@@ -40,17 +40,19 @@ abstract class Entity extends HttpRequest
     }
 
     /**
-     * @param string $result
+     * @param mixed $result
      * @return array
      * @throws UnexpectedResultException
      */
-    protected function decodeResult(string $result): array
+    protected function decodeResult($result): array
     {
-        if($result === "" || $result === "[]") {
+        if (is_array($result)) {
+            return $result;
+        } elseif (!is_string($result) || $result === "" || $result === "[]") {
             return [];
         }
         $result = json_decode($result, true);
-        if(!is_array($result)) {
+        if (!is_array($result)) {
             throw new UnexpectedResultException("Unable to decode result");
         }
         return $result;
@@ -62,10 +64,11 @@ abstract class Entity extends HttpRequest
     }
 
     /**
-     * @param string $result
+     * @param mixed $result
+     * @param array $postedFields: usage on class Sambavideo\API\Entities\Media
      * @throws UnexpectedResultException
      */
-    protected function fetchResult(string $result): void
+    protected function fetchResult($result, array $postedFields = []): void
     {
         $this->fetchArray(
             $this->decodeResult($result)
@@ -89,15 +92,15 @@ abstract class Entity extends HttpRequest
     public function search(array $postFields = []): array
     {
         $result = $this->decodeResult($this->curlGET($this->getEndpointUrl(), $postFields));
-        if(empty($result)) {
+        if (empty($result)) {
             return [];
         }
         $output = [];
         $class = get_called_class();
-        foreach($result as $item) {
+        foreach ($result as $item) {
             /** @var Entity $object */
             $object = new $class();
-            $object->fetchArray($item);
+            $object->fetchResult($item, $postFields);
             $output[] = $object;
         }
         return $output;
@@ -120,7 +123,7 @@ abstract class Entity extends HttpRequest
     public function fetch($id, array $postFields = []): void
     {
         $result = $this->curlGET("{$this->getEndpointUrl()}/$id", $postFields);
-        $this->fetchResult($result);
+        $this->fetchResult($result, $postFields);
     }
 
     /**
@@ -146,7 +149,7 @@ abstract class Entity extends HttpRequest
      */
     public function save(array $postFields = []): void
     {
-        if($this->existsOnVendor()) {
+        if ($this->existsOnVendor()) {
             $this->update($postFields);
         } else {
             $this->create($postFields);
@@ -172,7 +175,7 @@ abstract class Entity extends HttpRequest
             "{$this->getEndpointUrl()}",
             array_merge($postFields, $this->properties)
         );
-        $this->fetchResult($result);
+        $this->fetchResult($result, $postFields);
     }
 
     /**
@@ -182,8 +185,8 @@ abstract class Entity extends HttpRequest
     private function getDirty(array $properties): array
     {
         $dirty = [];
-        foreach($properties as $name => $value) {
-            if(!isset($this->shadowCopy['name']) || $this->shadowCopy['name'] !== $value) {
+        foreach ($properties as $name => $value) {
+            if (!isset($this->shadowCopy['name']) || $this->shadowCopy['name'] !== $value) {
                 $dirty[$name] = $value;
             }
         }
@@ -219,12 +222,12 @@ abstract class Entity extends HttpRequest
     {
         list($id, $properties) = $this->splitIdFromProperties($postFields);
         $dirty = $this->getDirty($properties);
-        if(empty($dirty)) {
+        if (empty($dirty)) {
             // if we don't have changes, we don't need to execute anything
             return;
         }
         $result = $this->curlPUT("{$this->getEndpointUrl()}/$id", $dirty);
-        $this->fetchResult($result);
+        $this->fetchResult($result, $postFields);
     }
 
     /**
@@ -243,7 +246,7 @@ abstract class Entity extends HttpRequest
      */
     public function delete(array $postFields = []): void
     {
-        if(!$this->existsOnVendor()) {
+        if (!$this->existsOnVendor()) {
             throw new UnidentifiedEntityException("You can't delete an entity without id.");
         }
         list($id,) = $this->splitIdFromProperties();
