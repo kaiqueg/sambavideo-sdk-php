@@ -13,29 +13,24 @@ class Project extends Entity
         return Settings::BASE_URL . "projects";
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function fetchInput(string $result): void
-    {
-        $this->fetchArray(
-            $this->decodeResult($result)
-        );
-    }
-
     public function getId(): int
     {
-        return $this->getProperty("id");
+        return (int)$this->getProperty("id");
     }
 
-    public function getName(): string
+    public function getName(): ?string
     {
         return $this->getProperty("name");
     }
 
-    public function getDescription(): string
+    public function getDescription(): ?string
     {
         return $this->getProperty("description");
+    }
+
+    public function getPlayerHash(): ?string
+    {
+        return $this->getProperty("playerKey");
     }
 
     public function setName(string $name): void
