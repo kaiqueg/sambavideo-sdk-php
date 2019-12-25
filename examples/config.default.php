@@ -6,4 +6,3 @@ require_once realpath(implode(DIRECTORY_SEPARATOR, [__DIR__, "..", "src", "spl_a
 
 // put project's data from the output of project.php
 $projectId = 0;
-\Sambavideo\API\Settings::setPlayerHash("PLAYER HASH");
