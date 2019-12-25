@@ -12,7 +12,8 @@ function show(\Sambavideo\API\Entities\Media $media) {
         <br/><b>Title</b>: {$media->getTitle()}
         </br><b>Description</b>: {$media->getDescription()}
         <br/><b>Short Description</b>: {$media->getShortDescription()}
-        <br/><b>Duration</b>: {$media->getDescription()}
+        <br/><b>Duration (ms)</b>: {$media->getDurationMilliseconds()}
+        <br/><b>Duration (time)</b>: {$media->getDurationTime()}
         <br/><b>-Files</b>:<ul>";
     $files = $media->getFiles();
     foreach($files as $file) {
