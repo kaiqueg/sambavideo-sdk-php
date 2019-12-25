@@ -1,6 +1,6 @@
 <?php
 
-include "config.php";
+include "config.default.php";
 
 $API = new \Sambavideo\API\Entities\Project();
 
