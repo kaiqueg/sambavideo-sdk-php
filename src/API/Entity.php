@@ -11,6 +11,7 @@ use Sambavideo\Exceptions\Http\NotFoundException;
 use Sambavideo\Exceptions\Http\UnauthorizedException;
 use Sambavideo\Exceptions\Validation\UnexpectedResultException;
 use Sambavideo\Exceptions\Validation\UnexpectedValueException;
+use Sambavideo\Exceptions\Validation\UnidentifiedEntityException;
 use Sambavideo\Exceptions\Validation\WorthlessVariableException;
 
 abstract class Entity extends HttpRequest
@@ -20,11 +21,19 @@ abstract class Entity extends HttpRequest
 
     abstract protected function getEndpointUrl(): string;
 
+    /**
+     * @param string $name
+     * @return mixed|null
+     */
     protected function getProperty(string $name)
     {
         return isset($this->properties[$name]) ? $this->properties[$name] : null;
     }
 
+    /**
+     * @param string $name
+     * @param $value
+     */
     protected function setProperty(string $name, $value): void
     {
         $this->properties[$name] = $value;
@@ -56,7 +65,12 @@ abstract class Entity extends HttpRequest
      * @param string $result
      * @throws UnexpectedResultException
      */
-    abstract protected function fetchInput(string $result): void;
+    protected function fetchResult(string $result): void
+    {
+        $this->fetchArray(
+            $this->decodeResult($result)
+        );
+    }
 
     /**
      * @param array $postFields
@@ -106,15 +120,19 @@ abstract class Entity extends HttpRequest
     public function fetch($id, array $postFields = []): void
     {
         $result = $this->curlGET("{$this->getEndpointUrl()}/$id", $postFields);
-        $this->fetchInput($result);
+        $this->fetchResult($result);
     }
 
+    /**
+     * @return bool
+     */
     protected function existsOnVendor(): bool
     {
         return !empty($this->properties['id']);
     }
 
     /**
+     * @param array $postFields
      * @throws BadRequestException
      * @throws ConflictException
      * @throws ForbiddenException
@@ -126,16 +144,17 @@ abstract class Entity extends HttpRequest
      * @throws UnexpectedValueException
      * @throws WorthlessVariableException
      */
-    public function save(): void
+    public function save(array $postFields = []): void
     {
         if($this->existsOnVendor()) {
-            $this->update();
+            $this->update($postFields);
         } else {
-            $this->create();
+            $this->create($postFields);
         }
     }
 
     /**
+     * @param array $postFields
      * @throws BadRequestException
      * @throws ConflictException
      * @throws ForbiddenException
@@ -147,12 +166,19 @@ abstract class Entity extends HttpRequest
      * @throws UnexpectedValueException
      * @throws WorthlessVariableException
      */
-    private function create(): void
+    protected function create(array $postFields): void
     {
-        $result = $this->curlPOST("{$this->getEndpointUrl()}", $this->properties);
-        $this->fetchInput($result);
+        $result = $this->curlPOST(
+            "{$this->getEndpointUrl()}",
+            array_merge($postFields, $this->properties)
+        );
+        $this->fetchResult($result);
     }
 
+    /**
+     * @param array $properties
+     * @return array
+     */
     private function getDirty(array $properties): array
     {
         $dirty = [];
@@ -164,15 +190,20 @@ abstract class Entity extends HttpRequest
         return $dirty;
     }
 
-    private function splitIdFromProperties(): array
+    /**
+     * @param array $postFields
+     * @return array
+     */
+    protected function splitIdFromProperties(array $postFields): array
     {
         $properties = $this->properties;
         $id = $this->properties['id'];
         unset($properties['id']);
-        return [$id, $properties];
+        return [$id, array_merge($postFields, $properties)];
     }
 
     /**
+     * @param array $postFields
      * @throws BadRequestException
      * @throws ConflictException
      * @throws ForbiddenException
@@ -184,15 +215,20 @@ abstract class Entity extends HttpRequest
      * @throws UnexpectedValueException
      * @throws WorthlessVariableException
      */
-    private function update(): void
+    protected function update(array $postFields): void
     {
-        list($id, $properties) = $this->splitIdFromProperties();
+        list($id, $properties) = $this->splitIdFromProperties($postFields);
         $dirty = $this->getDirty($properties);
+        if(empty($dirty)) {
+            // if we don't have changes, we don't need to execute anything
+            return;
+        }
         $result = $this->curlPUT("{$this->getEndpointUrl()}/$id", $dirty);
-        $this->fetchInput($result);
+        $this->fetchResult($result);
     }
 
     /**
+     * @param array $postFields
      * @throws BadRequestException
      * @throws ConflictException
      * @throws ForbiddenException
@@ -202,11 +238,15 @@ abstract class Entity extends HttpRequest
      * @throws UnauthorizedException
      * @throws UnexpectedResultException
      * @throws UnexpectedValueException
+     * @throws UnidentifiedEntityException
      * @throws WorthlessVariableException
      */
-    public function delete(): void
+    public function delete(array $postFields = []): void
     {
-        list($id, $properties) = $this->splitIdFromProperties();
-        $this->curlDELETE("{$this->getEndpointUrl()}/$id", $properties);
+        if(!$this->existsOnVendor()) {
+            throw new UnidentifiedEntityException("You can't delete an entity without id.");
+        }
+        list($id,) = $this->splitIdFromProperties();
+        $this->curlDELETE("{$this->getEndpointUrl()}/$id", $postFields);
     }
 }
