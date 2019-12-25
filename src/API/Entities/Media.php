@@ -31,6 +31,8 @@ class Media extends Entity
      * - So, please use this Entity only for fetch and search
      */
 
+    public static $PLAYER_HASHES = [];
+
     protected function getEndpointUrl(): string
     {
         return Settings::BASE_URL . "medias";
@@ -190,18 +192,36 @@ class Media extends Entity
         return is_array($captions) ? $captions : [];
     }
 
-    public function getEmbedUrl(): ?string
+    private function getPlayerHash(int $projectId): ?string
     {
-        $playerHash = Settings::getPlayerHash();
+        if($projectId <= 0) {
+            return null;
+        } elseif(!isset(self::$PLAYER_HASHES[$projectId])) {
+            $project = new Project();
+            try {
+                $project->fetch($projectId);
+                self::$PLAYER_HASHES[$projectId] = $project->getPlayerHash();
+            } catch (NotFoundException $e) {
+                self::$PLAYER_HASHES[$projectId] = null;
+            } catch (\Exception $e) {
+                return null;
+            }
+        }
+        return self::$PLAYER_HASHES[$projectId];
+    }
+
+    public function getEmbedUrl(int $projectId): ?string
+    {
+        $playerHash = $this->getPlayerHash($projectId);
         if(!$playerHash) {
             return null;
         }
         return "https://fast.player.liquidplatform.com/pApiv2/embed/$playerHash/{$this->getId()}";
     }
 
-    public function getIframe(): ?string
+    public function getIframe(int $projectId): ?string
     {
-        $embedUrl = $this->getEmbedUrl();
+        $embedUrl = $this->getEmbedUrl($projectId);
         if(!$embedUrl) {
             return null;
         }

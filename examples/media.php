@@ -2,7 +2,7 @@
 
 include "config.php";
 
-function show(\Sambavideo\API\Entities\Media $media) {
+function show(\Sambavideo\API\Entities\Media $media, $projectId) {
     $desc = $media->getDescription();
     if($desc) {
         $desc = ": $desc";
@@ -25,8 +25,8 @@ function show(\Sambavideo\API\Entities\Media $media) {
         echo "<li><b>{$thumb['width']}x{$thumb['height']}</b>: {$thumb['url']}</li>";
     }
     echo "</ul>
-        <br/><b>URL</b>: {$media->getEmbedUrl()}
-        <br/><b>Iframe</b>: {$media->getIframe()}
+        <br/><b>URL</b>: {$media->getEmbedUrl($projectId)}
+        <br/><b>Iframe</b>: {$media->getIframe($projectId)}
     </p>";
 }
 
@@ -37,7 +37,7 @@ $list = (new \Sambavideo\API\Entities\Media())->search([
     "pid" => $projectId,
 ]);
 foreach($list as $media) {
-    show($media);
+    show($media, $projectId);
 }
 // FETCH
 echo "<hr/><h1>FETCH</h1>";
@@ -51,5 +51,5 @@ if(empty($list)) {
             "pid" => $projectId,
         ]
     );
-    show($media);
+    show($media, $projectId);
 }
