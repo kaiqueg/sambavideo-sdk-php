@@ -56,7 +56,7 @@ abstract class Entity extends HttpRequest
      * @param string $result
      * @throws UnexpectedResultException
      */
-    abstract protected function fetchInput(string $result): void;
+    abstract protected function fetchResult(string $result): void;
 
     /**
      * @param array $postFields
@@ -106,7 +106,7 @@ abstract class Entity extends HttpRequest
     public function fetch($id, array $postFields = []): void
     {
         $result = $this->curlGET("{$this->getEndpointUrl()}/$id", $postFields);
-        $this->fetchInput($result);
+        $this->fetchResult($result);
     }
 
     protected function existsOnVendor(): bool
@@ -150,7 +150,7 @@ abstract class Entity extends HttpRequest
     private function create(): void
     {
         $result = $this->curlPOST("{$this->getEndpointUrl()}", $this->properties);
-        $this->fetchInput($result);
+        $this->fetchResult($result);
     }
 
     private function getDirty(array $properties): array
@@ -189,7 +189,7 @@ abstract class Entity extends HttpRequest
         list($id, $properties) = $this->splitIdFromProperties();
         $dirty = $this->getDirty($properties);
         $result = $this->curlPUT("{$this->getEndpointUrl()}/$id", $dirty);
-        $this->fetchInput($result);
+        $this->fetchResult($result);
     }
 
     /**

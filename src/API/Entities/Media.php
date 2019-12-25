@@ -16,7 +16,7 @@ class Media extends Entity
     /**
      * @inheritDoc
      */
-    protected function fetchInput(string $result): void
+    protected function fetchResult(string $result): void
     {
         $this->fetchArray(
             $this->decodeResult($result)
