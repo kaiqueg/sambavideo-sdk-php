@@ -33,6 +33,7 @@ class Media extends Entity
 
     private $pid = 0;
     public static $PLAYER_HASHES = [];
+    const PLAYER_URL = 'https://fast.player.liquidplatform.com/pApiv2/embed/';
 
     protected function getEndpointUrl(): string
     {
@@ -188,7 +189,7 @@ class Media extends Entity
         return is_array($captions) ? $captions : [];
     }
 
-    private function getPlayerHash(): ?string
+    public function getPlayerHash(): ?string
     {
         if ($this->pid <= 0) {
             return null;
@@ -212,7 +213,7 @@ class Media extends Entity
         if (!$playerHash) {
             return null;
         }
-        return "https://fast.player.liquidplatform.com/pApiv2/embed/$playerHash/{$this->getId()}";
+        return self::PLAYER_URL . "$playerHash/{$this->getId()}";
     }
 
     public function getIframe(): ?string
@@ -221,7 +222,17 @@ class Media extends Entity
         if (!$embedUrl) {
             return null;
         }
-        return "<iframe allowfullscreen webkitallowfullscreen mozallowfullscreen width=\"640\" height=\"360\" src=\"$embedUrl\" scrolling=\"no\" frameborder=\"0\" allow=\"geolocation; microphone; camera; encrypted-media; midi\"></iframe>";
+        return "<iframe 
+                allowfullscreen 
+                webkitallowfullscreen 
+                mozallowfullscreen 
+                width=\"640\" 
+                height=\"360\" 
+                src=\"$embedUrl\" 
+                scrolling=\"no\" 
+                frameborder=\"0\" 
+                allow=\"geolocation; microphone; camera; encrypted-media; midi\"
+            ></iframe>";
     }
 
     private function getProjectId(): int
