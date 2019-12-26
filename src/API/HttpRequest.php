@@ -18,15 +18,6 @@ use Sambavideo\Utils\CurlMethod;
 
 abstract class HttpRequest
 {
-
-    private function injectAccessToken(array $postFields): array
-    {
-        return array_merge(
-            ["access_token" => Settings::getToken()],
-            $postFields
-        );
-    }
-
     /**
      * @param string $url
      * @param array $postFields
@@ -39,7 +30,7 @@ abstract class HttpRequest
     {
         $curl = new Curl();
         $curl->setContentType($contentType);
-        $curl->setPostFields($this->injectAccessToken($postFields));
+        $curl->setPostFields($postFields);
         $curl->setUrl($url);
         return $curl;
     }
@@ -86,7 +77,8 @@ abstract class HttpRequest
     protected function curlPOST(string $url, array $postFields = [], string $contentType = CurlContentType::JSON): string
     {
         $curl = $this->curlInit($url, $postFields, $contentType);
-        $curl->setMethod(CurlMethod::GET);
+        $curl->setMethod(CurlMethod::POST);
+        $curl->unsetField("pid");
         return $curl->send();
     }
 
@@ -109,7 +101,8 @@ abstract class HttpRequest
     protected function curlPUT(string $url, array $postFields = [], string $contentType = CurlContentType::JSON): string
     {
         $curl = $this->curlInit($url, $postFields, $contentType);
-        $curl->setMethod(CurlMethod::GET);
+        $curl->setMethod(CurlMethod::PUT);
+        $curl->unsetField("pid");
         return $curl->send();
     }
 
@@ -132,7 +125,8 @@ abstract class HttpRequest
     protected function curlDELETE(string $url, array $postFields = [], string $contentType = CurlContentType::JSON): string
     {
         $curl = $this->curlInit($url, $postFields, $contentType);
-        $curl->setMethod(CurlMethod::GET);
+        $curl->setMethod(CurlMethod::DELETE);
+        $curl->unsetField("pid");
         return $curl->send();
     }
 }

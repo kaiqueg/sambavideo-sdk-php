@@ -59,11 +59,6 @@ class Media extends Entity
         return (bool)$this->getProperty("restricted");
     }
 
-    public function getId(): ?string
-    {
-        return $this->getProperty("id");
-    }
-
     public function getTitle(): ?string
     {
         return $this->getProperty("title");
@@ -369,6 +364,7 @@ class Media extends Entity
     }
 
     /**
+     * @param array $postFields
      * @throws BadRequestException
      * @throws ConflictException
      * @throws ForbiddenException
@@ -381,12 +377,15 @@ class Media extends Entity
      * @throws UnidentifiedEntityException
      * @throws WorthlessVariableException
      */
-    public function deleteRaw(): void
+    public function deleteRaw(array $postFields = []): void
     {
         if (!$this->existsOnVendor()) {
             throw new UnidentifiedEntityException("You can't delete a media's RAW without it's id.");
         }
-        list($id, $properties) = $this->splitIdFromProperties();
-        $this->curlDELETE("{$this->getEndpointUrl()}/$id/raw", $properties);
+        $id = $this->getId();
+        $this->curlDELETE(
+            "{$this->getEndpointUrl()}/$id/raw{$this->getEndpointUrlExtension($postFields)}",
+            $postFields
+        );
     }
 }

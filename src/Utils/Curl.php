@@ -76,6 +76,16 @@ class Curl
     }
 
     /**
+     * @param string $name
+     */
+    public function unsetField(string $name): void
+    {
+        if(isset($this->postFields[$name])) {
+            unset($this->postFields[$name]);
+        }
+    }
+
+    /**
      * @param array $postFields
      * @throws WorthlessVariableException
      */
@@ -128,16 +138,11 @@ class Curl
             CURLOPT_TIMEOUT => '30',
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_CUSTOMREQUEST => $this->method,
+            CURLOPT_POST => $this->method === CurlMethod::POST,
         ];
         if (!$isGetMethod && !empty($this->postFields)) {
             $opts[CURLOPT_POSTFIELDS] = $this->getCurlPostFields();
-        }
-        if($isGetMethod) {
-            $opts[CURLOPT_POST] = false;
-        } elseif ($this->method === CurlMethod::POST) {
-            $opts[CURLOPT_POST] = true;
-        } elseif (!$isGetMethod) {
-            $opts[CURLOPT_CUSTOMREQUEST] = $this->method;
         }
         return $opts;
     }
