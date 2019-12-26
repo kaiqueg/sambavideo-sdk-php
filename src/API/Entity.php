@@ -21,6 +21,28 @@ abstract class Entity extends HttpRequest
 
     abstract protected function getEndpointUrl(): string;
 
+    protected function getEndpointUrlExtension(array $postFields = []): string
+    {
+        $accessToken = Settings::getToken();
+        $pid = isset($postFields['pid']) ? "&pid={$postFields['pid']}" : null;
+        return "?access_token={$accessToken}$pid";
+    }
+
+    protected function injectAccessToken(array $postFields): array
+    {
+        return array_merge(
+            [
+                "access_token" => Settings::getToken(),
+            ],
+            $postFields
+        );
+    }
+
+    public function getId()
+    {
+        return $this->getProperty("id");
+    }
+
     /**
      * @param string $name
      * @return mixed|null
@@ -61,6 +83,17 @@ abstract class Entity extends HttpRequest
     protected function fetchArray(array $result): void
     {
         $this->properties = $this->shadowCopy = $result;
+        /**
+         * some variables as 'parent' are required for any request when it exists
+         * so I'm removing it from shadowCopy
+         * then our method 'getDirty' will  always identify it as a new data
+        **/
+        $requiredVars = ["id", "parent", "children", "hidden", "deleted"];
+        foreach($requiredVars as $requiredVar) {
+            if(isset($this->shadowCopy[$requiredVar])) {
+                unset($this->shadowCopy[$requiredVar]);
+            }
+        }
     }
 
     /**
@@ -91,13 +124,21 @@ abstract class Entity extends HttpRequest
      */
     public function search(array $postFields = []): array
     {
-        $result = $this->decodeResult($this->curlGET($this->getEndpointUrl(), $postFields));
+        $result = $this->decodeResult(
+            $this->curlGET(
+                $this->getEndpointUrl(),
+                $this->injectAccessToken($postFields)
+            )
+        );
         if (empty($result)) {
             return [];
         }
         $output = [];
         $class = get_called_class();
         foreach ($result as $item) {
+            if($item['id'] === 0) {
+                continue;
+            }
             /** @var Entity $object */
             $object = new $class();
             $object->fetchResult($item, $postFields);
@@ -122,7 +163,10 @@ abstract class Entity extends HttpRequest
      */
     public function fetch($id, array $postFields = []): void
     {
-        $result = $this->curlGET("{$this->getEndpointUrl()}/$id", $postFields);
+        $result = $this->curlGET(
+            "{$this->getEndpointUrl()}/$id",
+            $this->injectAccessToken($postFields)
+        );
         $this->fetchResult($result, $postFields);
     }
 
@@ -172,7 +216,7 @@ abstract class Entity extends HttpRequest
     protected function create(array $postFields): void
     {
         $result = $this->curlPOST(
-            "{$this->getEndpointUrl()}",
+            "{$this->getEndpointUrl()}{$this->getEndpointUrlExtension($postFields)}",
             array_merge($postFields, $this->properties)
         );
         $this->fetchResult($result, $postFields);
@@ -186,23 +230,12 @@ abstract class Entity extends HttpRequest
     {
         $dirty = [];
         foreach ($properties as $name => $value) {
-            if (!isset($this->shadowCopy['name']) || $this->shadowCopy['name'] !== $value) {
+            $shadowValue = isset($this->shadowCopy[$name]) ? $this->shadowCopy[$name] : null;
+            if ($shadowValue !== $value) {
                 $dirty[$name] = $value;
             }
         }
         return $dirty;
-    }
-
-    /**
-     * @param array $postFields
-     * @return array
-     */
-    protected function splitIdFromProperties(array $postFields): array
-    {
-        $properties = $this->properties;
-        $id = $this->properties['id'];
-        unset($properties['id']);
-        return [$id, array_merge($postFields, $properties)];
     }
 
     /**
@@ -220,13 +253,16 @@ abstract class Entity extends HttpRequest
      */
     protected function update(array $postFields): void
     {
-        list($id, $properties) = $this->splitIdFromProperties($postFields);
-        $dirty = $this->getDirty($properties);
+        $id = $this->getId();
+        $dirty = $this->getDirty($this->properties);
         if (empty($dirty)) {
             // if we don't have changes, we don't need to execute anything
             return;
         }
-        $result = $this->curlPUT("{$this->getEndpointUrl()}/$id", $dirty);
+        $result = $this->curlPUT(
+            "{$this->getEndpointUrl()}/$id{$this->getEndpointUrlExtension($postFields)}",
+            $dirty
+        );
         $this->fetchResult($result, $postFields);
     }
 
@@ -249,7 +285,10 @@ abstract class Entity extends HttpRequest
         if (!$this->existsOnVendor()) {
             throw new UnidentifiedEntityException("You can't delete an entity without id.");
         }
-        list($id,) = $this->splitIdFromProperties();
-        $this->curlDELETE("{$this->getEndpointUrl()}/$id", $postFields);
+        $id = $this->getId();
+        $this->curlDELETE(
+            "{$this->getEndpointUrl()}/$id{$this->getEndpointUrlExtension($postFields)}",
+            $postFields
+        );
     }
 }

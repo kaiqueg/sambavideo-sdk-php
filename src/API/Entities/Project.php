@@ -13,11 +13,6 @@ class Project extends Entity
         return Settings::BASE_URL . "projects";
     }
 
-    public function getId(): int
-    {
-        return (int)$this->getProperty("id");
-    }
-
     public function getName(): ?string
     {
         return $this->getProperty("name");
