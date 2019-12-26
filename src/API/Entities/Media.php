@@ -188,7 +188,7 @@ class Media extends Entity
         return is_array($captions) ? $captions : [];
     }
 
-    private function getPlayerHash(): ?string
+    public function getPlayerHash(): ?string
     {
         if ($this->pid <= 0) {
             return null;
