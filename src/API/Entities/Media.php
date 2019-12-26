@@ -31,6 +31,7 @@ class Media extends Entity
      * - So, please use this Entity only for fetch and search
      */
 
+    private $pid = 0;
     public static $PLAYER_HASHES = [];
 
     protected function getEndpointUrl(): string
@@ -56,11 +57,6 @@ class Media extends Entity
     public function isRestricted(): bool
     {
         return (bool)$this->getProperty("restricted");
-    }
-
-    public function getId(): ?string
-    {
-        return $this->getProperty("id");
     }
 
     public function getTitle(): ?string
@@ -150,8 +146,8 @@ class Media extends Entity
     public function getFile(string $outputName = "1080p"): array
     {
         $files = $this->getFiles();
-        foreach($files as $file) {
-            if($file['outputName'] === $outputName) {
+        foreach ($files as $file) {
+            if ($file['outputName'] === $outputName) {
                 return $file;
             }
         }
@@ -178,8 +174,8 @@ class Media extends Entity
     public function getThumbFor(int $minWidth): ?string
     {
         $thumbs = $this->getThumbs();
-        foreach($thumbs as $thumb) {
-            if($minWidth <= $thumb['width']) {
+        foreach ($thumbs as $thumb) {
+            if ($minWidth <= $thumb['width']) {
                 return $thumb['url'];
             }
         }
@@ -192,40 +188,53 @@ class Media extends Entity
         return is_array($captions) ? $captions : [];
     }
 
-    private function getPlayerHash(int $projectId): ?string
+    private function getPlayerHash(): ?string
     {
-        if($projectId <= 0) {
+        if ($this->pid <= 0) {
             return null;
-        } elseif(!isset(self::$PLAYER_HASHES[$projectId])) {
+        } elseif (!isset(self::$PLAYER_HASHES[$this->pid])) {
             $project = new Project();
             try {
-                $project->fetch($projectId);
-                self::$PLAYER_HASHES[$projectId] = $project->getPlayerHash();
+                $project->fetch($this->pid);
+                self::$PLAYER_HASHES[$this->pid] = $project->getPlayerHash();
             } catch (NotFoundException $e) {
-                self::$PLAYER_HASHES[$projectId] = null;
+                self::$PLAYER_HASHES[$this->pid] = null;
             } catch (\Exception $e) {
                 return null;
             }
         }
-        return self::$PLAYER_HASHES[$projectId];
+        return self::$PLAYER_HASHES[$this->pid];
     }
 
-    public function getEmbedUrl(int $projectId): ?string
+    public function getEmbedUrl(): ?string
     {
-        $playerHash = $this->getPlayerHash($projectId);
-        if(!$playerHash) {
+        $playerHash = $this->getPlayerHash();
+        if (!$playerHash) {
             return null;
         }
         return "https://fast.player.liquidplatform.com/pApiv2/embed/$playerHash/{$this->getId()}";
     }
 
-    public function getIframe(int $projectId): ?string
+    public function getIframe(): ?string
     {
-        $embedUrl = $this->getEmbedUrl($projectId);
-        if(!$embedUrl) {
+        $embedUrl = $this->getEmbedUrl();
+        if (!$embedUrl) {
             return null;
         }
         return "<iframe allowfullscreen webkitallowfullscreen mozallowfullscreen width=\"640\" height=\"360\" src=\"$embedUrl\" scrolling=\"no\" frameborder=\"0\" allow=\"geolocation; microphone; camera; encrypted-media; midi\"></iframe>";
+    }
+
+    private function getProjectId(): int
+    {
+        return $this->pid;
+    }
+
+    private function setProjectId(int $pid): void
+    {
+        if ($pid <= 0) {
+            return;
+        }
+        $this->pid = $pid;
     }
 
     /**
@@ -235,11 +244,22 @@ class Media extends Entity
      */
     private function checkProjectId(array $postFields): void
     {
-        if(!isset($postFields['pid'])) {
+        if (!isset($postFields['pid'])) {
             throw new MissingFieldException("Please inform the media's pid .");
-        } elseif(intval($postFields['pid']) <= 0) {
+        } elseif (intval($postFields['pid']) <= 0) {
             throw new UnexpectedValueException("The project's id must be higher than 0.");
         }
+    }
+
+    /**
+     * @param mixed $result
+     * @param array $postedFields
+     * @throws UnexpectedResultException
+     */
+    protected function fetchResult($result, array $postedFields = []): void
+    {
+        parent::fetchResult($result, $postedFields);
+        $this->setProjectId((int)$postedFields['pid']);
     }
 
     /**
@@ -344,6 +364,7 @@ class Media extends Entity
     }
 
     /**
+     * @param array $postFields
      * @throws BadRequestException
      * @throws ConflictException
      * @throws ForbiddenException
@@ -356,12 +377,15 @@ class Media extends Entity
      * @throws UnidentifiedEntityException
      * @throws WorthlessVariableException
      */
-    public function deleteRaw(): void
+    public function deleteRaw(array $postFields = []): void
     {
-        if(!$this->existsOnVendor()) {
+        if (!$this->existsOnVendor()) {
             throw new UnidentifiedEntityException("You can't delete a media's RAW without it's id.");
         }
-        list($id, $properties) = $this->splitIdFromProperties();
-        $this->curlDELETE("{$this->getEndpointUrl()}/$id/raw", $properties);
+        $id = $this->getId();
+        $this->curlDELETE(
+            "{$this->getEndpointUrl()}/$id/raw{$this->getEndpointUrlExtension($postFields)}",
+            $postFields
+        );
     }
 }
