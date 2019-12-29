@@ -185,4 +185,22 @@ class Category extends Entity
         $this->checkProjectId($postFields);
         parent::delete($postFields);
     }
+
+    public function toArray(): array
+    {
+        $children = [];
+        foreach($this->getChildren() as $child) {
+            /** @var Category $child */
+            $children[] = $child->toArray();
+        }
+        return [
+            "id" => $this->getId(),
+            "name" => $this->getName(),
+            "parentId" => $this->getParentId(),
+            "children" => $children,
+            "hidden" => $this->isHidden(),
+            "deleted" => $this->isDeleted(),
+            "leadEnabled" => $this->hasLead(),
+        ];
+    }
 }
