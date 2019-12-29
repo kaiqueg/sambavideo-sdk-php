@@ -40,6 +40,38 @@ class Media extends Entity
         return Settings::BASE_URL . "medias";
     }
 
+    public function toArray(): array
+    {
+        return [
+            "id" => $this->getId(),
+            "projectId" => $this->getProjectId(),
+            "url" => $this->getEmbedUrl(),
+            "iframe" => $this->getIframe(),
+            "title" => $this->getTitle(),
+            "description" => $this->getDescription(),
+            "shortDescription" => $this->getShortDescription(),
+            "categoryName" => $this->getCategoryName(),
+            "categoryId" => $this->getCategoryId(),
+            "tags" => $this->getTags(),
+            "files" => $this->getFiles(),
+            "thumbs" => $this->getThumbs(),
+            "durationMilliseconds" => $this->getDurationMilliseconds(),
+            "durationTime" => $this->getDurationTime(),
+            "captions" => $this->getCaptions(),
+            "hasLibras" => $this->hasLibras(),
+            "published" => $this->isPublished(),
+            "highlighted" => $this->isHighlighted(),
+            "restricted" => $this->isRestricted(),
+            "postDate" => $this->getPostDate(),
+            "publishDate" => $this->getPublishDate(),
+            "unpublishDate" => $this->getUnpublishDate(),
+            "lastModificationDate" => $this->getLastModificationDate(),
+            "viewCount" => $this->getViewCount(),
+            "commentCount" => $this->getCommentCount(),
+            "ratingCount" => $this->getRatingCount(),
+        ];
+    }
+
     public function hasLibras(): bool
     {
         return (bool)$this->getProperty("libras")['enabled'];

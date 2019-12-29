@@ -8,6 +8,16 @@ use Sambavideo\API\Settings;
 class Project extends Entity
 {
 
+    public function toArray(): array
+    {
+        return [
+            "id" => $this->getId(),
+            "name" => $this->getName(),
+            "description" => $this->getDescription(),
+            "playerHash" => $this->getPlayerHash(),
+        ];
+    }
+
     protected function getEndpointUrl(): string
     {
         return Settings::BASE_URL . "projects";
