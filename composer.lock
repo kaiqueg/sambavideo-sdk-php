@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/kaiqueg/sdk-php-base.git",
-                "reference": "5c5408419c2b34a461ca6ba5fb4f4ccc31e1c7b0"
+                "reference": "8cad22bbfae274570095350115eebbb3004d30e1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kaiqueg/sdk-php-base/zipball/5c5408419c2b34a461ca6ba5fb4f4ccc31e1c7b0",
-                "reference": "5c5408419c2b34a461ca6ba5fb4f4ccc31e1c7b0",
+                "url": "https://api.github.com/repos/kaiqueg/sdk-php-base/zipball/8cad22bbfae274570095350115eebbb3004d30e1",
+                "reference": "8cad22bbfae274570095350115eebbb3004d30e1",
                 "shasum": ""
             },
             "require": {
@@ -51,7 +51,7 @@
                 "php",
                 "sdk"
             ],
-            "time": "2020-01-03T12:49:56+00:00"
+            "time": "2020-01-03T21:32:47+00:00"
         }
     ],
     "packages-dev": [],
