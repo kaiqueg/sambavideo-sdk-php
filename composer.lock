@@ -1,0 +1,72 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "c2a890ab08f66b76e35bffbc71e5e64e",
+    "packages": [
+        {
+            "name": "kaiquegarcia/sdk-php-base",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kaiqueg/sdk-php-base.git",
+                "reference": "5c5408419c2b34a461ca6ba5fb4f4ccc31e1c7b0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kaiqueg/sdk-php-base/zipball/5c5408419c2b34a461ca6ba5fb4f4ccc31e1c7b0",
+                "reference": "5c5408419c2b34a461ca6ba5fb4f4ccc31e1c7b0",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "ext-simplexml": "*",
+                "php": "^7.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "SdkBase\\": "src/"
+                },
+                "files": [
+                    "src/spl_autoload.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kaique Garcia",
+                    "email": "kaiquegarciam@gmail.com"
+                }
+            ],
+            "description": "Base para construção de SDKs PHPI",
+            "keywords": [
+                "base",
+                "php",
+                "sdk"
+            ],
+            "time": "2020-01-03T12:49:56+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {
+        "kaiquegarcia/sdk-php-base": 20
+    },
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {
+        "php": "^7.2",
+        "ext-json": "*",
+        "ext-simplexml": "*",
+        "ext-curl": "*"
+    },
+    "platform-dev": []
+}
