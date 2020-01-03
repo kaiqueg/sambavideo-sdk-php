@@ -6,6 +6,12 @@ use SdkBase\API\Entity as SdkEntity;
 
 abstract class Entity extends SdkEntity
 {
+    protected function getAuthorizationHeader(): array
+    {
+        // we don't use AuthorizationHeader on this project
+        return [];
+    }
+
     protected function getEndpointUrlExtension(array $postFields = []): string
     {
         $accessToken = Settings::getToken();
